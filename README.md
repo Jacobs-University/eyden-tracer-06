@@ -4,7 +4,16 @@
 Please put your name here:  
 **Name:** .......
 ## Problem 1
-### Animation (Points xx)
+### Target Camera (Points xx)
+
+## Problem 2
+### Shearing Transform (Points xx)
+
+## Problem 3
+### Camera Animation (Points xx)
+
+## Problem 4
+### Geometry Animation (Points xx)
 
 
 ## Submission
