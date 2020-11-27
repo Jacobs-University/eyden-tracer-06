@@ -14,6 +14,7 @@
 #include "ShaderPhong.h"
 
 #include "Texture.h"
+#include "Transform.h"
 
 #include "LightOmni.h"
 #include "timer.h"
@@ -28,6 +29,9 @@ Mat RenderFrame(void)
 
 	// Define a scene
 	CScene scene(bgColor);
+
+	// Define transform class;
+	CTransform transform;
 
 	// Camera
 	scene.add(std::make_shared<CCameraPerspective>(resolution, Vec3f(0, 0, -30.0f), Vec3f(0, 0, 1), Vec3f(0, 1, 0), 45.0f));
