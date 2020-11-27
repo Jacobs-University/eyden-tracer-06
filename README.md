@@ -33,7 +33,7 @@ So far we have used mostly the perspective cameras, which were defined as camera
         * ```virtual void setTarget(const Vec3f& target);```
         * ```Vec3f getTarget(void) const;```
         
-In **main.cpp** file substite your free perspective camera with the target camera and test your implementation.
+In **main.cpp** file substitute your free perspective camera with the target camera and test your implementation.
 
 
 ### Shearing Transform (Points 10)
