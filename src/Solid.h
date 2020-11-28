@@ -3,14 +3,11 @@
 #pragma once
 
 #include "PrimTriangle.h"
+#include "Transform.h"
 #include <fstream> 
 
 class CSolid {
 public:
-	/**
-	 * @brief Default constructor
-	 */
-	CSolid(void) {}
 	/**
 	 * @brief Constructor
 	 * @details Loads the primitives from an .obj file and adds them to the scene
@@ -86,11 +83,55 @@ public:
 	virtual ~CSolid(void) = default;
 	CSolid& operator=(const CSolid&) = delete;
 
-	const std::vector<ptr_prim_t>&  getPrims(void) const { return m_vpPrims; }
+	/**
+	 * @brief Applies affine transformation matrix \b t to the solid.
+	 * @param t The affine transformatio matrix
+	 */
+	void transform(const Mat& t) {
+		CTransform tr;
+		Mat T1 = tr.translate(-m_pivot).get();
+		Mat T2 = tr.translate(m_pivot).get();
+
+		// Apply transformation
+		for (auto& pPrim : m_vpPrims) pPrim->transform(t * T1);
+		for (auto& pPrim : m_vpPrims) pPrim->transform(T2);
+
+		// Update pivot point
+		for (int i = 0; i < 3; i++)
+			m_pivot.val[i] += t.at<float>(i, 3);
+	}
+	/**
+	 * @brief Returns the primitives which build the solid
+	 * @return The vector with pointers to the primitives which build the solid
+	 */
+	const std::vector<ptr_prim_t>& getPrims(void) const { return m_vpPrims; }
+	/**
+	 * @brief Sets new pivot point for affine transformations
+	 * @param pivot The new pivot point
+	 */
+	void setPivot(const Vec3f& pivot) { m_pivot = pivot; }
+	/**
+	 * @brief Returns the solid's pivot point
+	 * @return The solid's pivot point
+	 */
+	Vec3f getPivot(void) const { return m_pivot; }
 
 
 protected:
+	/**
+	* @brief Constructor
+	* @param org The origin of the object. This point may be the virtual center of mass and will be used as a pivot point for object transformations.
+	*/
+	CSolid(Vec3f org) : m_pivot(org) {}
+	/**
+	* @brief Adds a new primitive to the solid
+	* @param pPrim Pointer to the primitive
+	*/
 	void add(const ptr_prim_t pPrim) { m_vpPrims.push_back(pPrim); }
+	/**
+	* @brief Add a new solid to the solid
+	* @param solid The reference to the solid
+	*/
 	void add(const std::shared_ptr<CSolid> pSolid) {
 		for (const auto& pPrim : pSolid->getPrims())
 			m_vpPrims.push_back(pPrim);
@@ -98,5 +139,6 @@ protected:
 
 
 private:
-	std::vector<ptr_prim_t>	m_vpPrims;
+	Vec3f					m_pivot;		///< The pivot point (origin)
+	std::vector<ptr_prim_t>	m_vpPrims;		///< Container for the primitives which build the solid
 };

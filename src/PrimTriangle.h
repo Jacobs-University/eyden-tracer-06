@@ -80,6 +80,10 @@ public:
 		return true;
 	}
 
+	virtual void transform(const Mat& t) override {
+		// --- PUT YOUR CODE HERE ---
+	}
+
 	virtual Vec3f getNormal(const Ray& ray) const override
 	{
 		if (m_na && m_nb && m_nc) {

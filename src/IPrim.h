@@ -43,6 +43,11 @@ public:
 	 */
 	virtual bool occluded(Ray& ray) const { return intersect(ray); }
 	/**
+	 * @brief Performs affine transformation
+	 * @param T Transformation matrix (size: 4 x 4; type: CV_32FC1)
+	 */
+	virtual void transform(const Mat& T) = 0;
+	/**
 	 * @brief Returns the normalized normal vector of the primitive in the ray - primitive intercection point
 	 * @param ray Ray pointing at the surface
 	 * @return The normalized normal of the primitive

@@ -8,6 +8,7 @@
 #include "Solid.h"
 #include "SolidQuad.h"
 #include "SolidCone.h"
+#include "SolidSphere.h"
 
 #include "ShaderFlat.h"
 #include "ShaderEyelight.h"
@@ -22,7 +23,7 @@
 Mat RenderFrame(void)
 {
 	// Camera resolution
-	const Size resolution(800, 600);
+	const Size resolution(1920, 600);
 	
 	// Background color
 	const Vec3f bgColor = RGB(0, 0, 0);
@@ -34,10 +35,10 @@ Mat RenderFrame(void)
 	CTransform transform;
 
 	// Camera
-	scene.add(std::make_shared<CCameraPerspective>(resolution, Vec3f(0, 0, -30.0f), Vec3f(0, 0, 1), Vec3f(0, 1, 0), 45.0f));
+	scene.add(std::make_shared<CCameraPerspective>(resolution, Vec3f(0, 0, -300.0f), Vec3f(0, 0, 1), Vec3f(0, 1, 0), 60.0f));
 
 	// Light
-	auto sun = std::make_shared<CLightOmni>(Vec3f::all(1e4), Vec3f::all(0));
+	auto sun = std::make_shared<CLightOmni>(Vec3f::all(3e10), Vec3f(150000, 0, 0));
 	
 #ifdef WIN32
 	const std::string dataPath = "../data/";
@@ -51,17 +52,20 @@ Mat RenderFrame(void)
 	auto pTextureEarth = std::make_shared<CTexture>(imgEarth);
 
 	// Shaders
-	//auto pShaderEarth = std::make_shared<CShaderPhong>(scene, pTextureEarth, 0.1f, 0.9f, 0.0f, 40.0f);
+	auto pShaderEarth = std::make_shared<CShaderPhong>(scene, pTextureEarth, 0.1f, 0.9f, 0.0f, 40.0f);
+	auto pShaderMoon = std::make_shared<CShaderPhong>(scene, Vec3f::all(1), 0.1f, 0.9f, 0.0f, 40.0f);
 
 	// Geometry
-	//auto earth = std::make_shared<CPrimSphere>(pShaderEarth, Vec3f::all(0), 5);
+	auto earth = CSolidSphere(pShaderEarth, Vec3f::all(0), 6.371f);
+	auto moon = CSolidSphere(pShaderMoon, Vec3f(382.26f, 0, 0), 1.737f);
 
 	// Add everything to the scene
 	scene.add(sun);
-	//scene.add(earth);
+	scene.add(earth);
+	scene.add(moon);
 
 	// Build BSPTree
-	scene.buildAccelStructure(30, 3);
+	scene.buildAccelStructure(0, 3);
 
 	Mat img(resolution, CV_32FC3);								// image array
 	

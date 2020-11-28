@@ -22,6 +22,23 @@ public:
 		, m_ks(ks)
 		, m_ke(ke)
 	{}
+	/**
+	* @brief Constructor
+	* @param scene Reference to the scene
+	* @param pTexture Pointer to the texture
+	* @param ka The ambient coefficient
+	* @param kd The diffuse reflection coefficients
+	* @param ks The specular refelection coefficients
+	* @param ke The shininess exponent
+	*/
+	CShaderPhong(CScene& scene, ptr_texture_t pTexture, float ka, float kd, float ks, float ke)
+		: CShaderFlat(pTexture)
+		, m_scene(scene)
+		, m_ka(ka)
+		, m_kd(kd)
+		, m_ks(ks)
+		, m_ke(ke)
+	{}
 	virtual ~CShaderPhong(void) = default;
 
 	virtual Vec3f shade(const Ray& ray) const override

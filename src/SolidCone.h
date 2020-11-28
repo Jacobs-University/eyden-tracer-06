@@ -19,7 +19,7 @@ public:
 	 * @param height The height of the cone
 	 * @param sides The number of sides
 	 */
-	CSolidCone(ptr_shader_t pShader, const Vec3f& origin = Vec3f::all(0), float radius = 1, float height = 1, size_t sides = 24) 
+	CSolidCone(ptr_shader_t pShader, const Vec3f& origin = Vec3f::all(0), float radius = 1, float height = 1, size_t sides = 24) : CSolid(origin)
 	{
 		const Vec3f top(0, height, 0);				// The top point
 		const Vec3f slope(0, radius / height, 0);
