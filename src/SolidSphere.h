@@ -25,7 +25,7 @@ public:
     */
     CSolidSphere(ptr_shader_t pShader, const Vec3f& origin = Vec3f::all(0), float radius = 1, size_t sides = 24, bool smooth = true) : CSolid(origin)
     {
-        size_t height_segments = (sides / 2);
+        size_t height_segments = sides / 2;
         float t0 = 0;								            // Initial texture coordinate
         float phi0 = 0;
         for (size_t s = 0; s < sides; s++) {

@@ -23,7 +23,7 @@
 Mat RenderFrame(void)
 {
 	// Camera resolution
-	const Size resolution(1920, 600);
+	const Size resolution(768, 480);
 	
 	// Background color
 	const Vec3f bgColor = RGB(0, 0, 0);
@@ -33,13 +33,13 @@ Mat RenderFrame(void)
 
 	// Define transform class;
 	CTransform transform;
-
-	// Camera
-	scene.add(std::make_shared<CCameraPerspective>(resolution, Vec3f(0, 0, -300.0f), Vec3f(0, 0, 1), Vec3f(0, 1, 0), 60.0f));
-
-	// Light
-	auto sun = std::make_shared<CLightOmni>(Vec3f::all(3e10), Vec3f(150000, 0, 0));
 	
+	// Cameras
+	auto cam1 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000, 220, -192), Vec3f(0, -1, 0), Vec3f(0, 0, -1), 90.0f);			// upside-down view
+	auto cam2 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(0, 0, -1), Vec3f(0, 1, 0), 3.5f);	// 
+	scene.add(cam1);				
+	scene.add(cam2);
+
 #ifdef WIN32
 	const std::string dataPath = "../data/";
 #else
@@ -47,17 +47,24 @@ Mat RenderFrame(void)
 #endif
 
 	// Textures
-	Mat imgEarth = imread(dataPath + "1_earth_8k.jpg");
+	Mat imgEarth = imread(dataPath + "earth_8k.jpg");
 	if (imgEarth.empty()) printf("ERROR: Texture file is not found!\n");
 	auto pTextureEarth = std::make_shared<CTexture>(imgEarth);
+	Mat imgMoon = imread(dataPath + "moon_8k.jpg");
+	if (imgMoon.empty()) printf("ERROR: Texture file is not found!\n");
+	auto pTextureMoon = std::make_shared<CTexture>(imgMoon);
+
 
 	// Shaders
 	auto pShaderEarth = std::make_shared<CShaderPhong>(scene, pTextureEarth, 0.1f, 0.9f, 0.0f, 40.0f);
-	auto pShaderMoon = std::make_shared<CShaderPhong>(scene, Vec3f::all(1), 0.1f, 0.9f, 0.0f, 40.0f);
+	auto pShaderMoon = std::make_shared<CShaderPhong>(scene, pTextureMoon, 0.1f, 0.9f, 0.0f, 40.0f);
+
+	// Light
+	auto sun = std::make_shared<CLightOmni>(Vec3f::all(3e10), Vec3f(0, 0, 0));
 
 	// Geometry
-	auto earth = CSolidSphere(pShaderEarth, Vec3f::all(0), 6.371f);
-	auto moon = CSolidSphere(pShaderMoon, Vec3f(382.26f, 0, 0), 1.737f);
+	auto earth = CSolidSphere(pShaderEarth, Vec3f(150000, 0, 0), 6.371f);
+	auto moon = CSolidSphere(pShaderMoon, Vec3f(150000, 0, -384), 1.737f);
 
 	// Add everything to the scene
 	scene.add(sun);
@@ -65,8 +72,9 @@ Mat RenderFrame(void)
 	scene.add(moon);
 
 	// Build BSPTree
-	scene.buildAccelStructure(0, 3);
+	scene.buildAccelStructure(20, 3);
 
+	scene.setActiveCamera(1);
 	Mat img(resolution, CV_32FC3);								// image array
 	
 	img.setTo(0);

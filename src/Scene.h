@@ -65,6 +65,14 @@ public:
 			add(pPrim);
 	}
 	/**
+	 * @brief Sets the active camera
+	 * @param activeCamera The new active camera index
+	 */
+	void setActiveCamera(size_t activeCamera) {
+		if (activeCamera < m_vpCameras.size())
+			m_activeCamera = activeCamera;
+	}
+	/**
 	 * @brief (Re-) Build the BSP tree for the current geometry present in scene
 	 * @details This function takes into accound all the primitives in scene and builds the BSP tree with the root node in \b m_pBSPTree variable.
 	 * If the geometry in the scene was updated the BSP tree should be re-built
