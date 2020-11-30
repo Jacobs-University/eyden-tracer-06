@@ -5,13 +5,20 @@ Please put your name here:
 **Name:** .......
 
 ## Problem 1
-### Shearing Transform (Points 10)
-Now the framework includes the **Tranform.h** file which contains the ```CTransform``` class. This class implements most of the affine transormations discussed at the lectures. Within this problem we will implement shear transform. Proceed as follows:
-1. Fork the current repository
-2. Modify the README.md file in your fork and put your name above
-3. Study the ```CTransform``` class. It is written in respect to a design pattern, called [Fluent Interface](https://en.wikipedia.org/wiki/Fluent_interface)
-4. Implement ```CTransform::shear()```method (_e.g._ in between ```translate``` and ```rotate```methods)
-5. Test your implementation on one of the solid spheres in the scene
+### Shearing Transform (Points 10 + 10)
+Now the framework includes the **Tranform.h** file which contains the ```CTransform``` class. This class implements most of the affine transormations discussed at the lectures (when studying the class please pay extra attention to the rotation transoform). The main goal of this class is to deliver the transformation matrix with ```CTransform::get()```. Within this problem we will implement shear transform. Proceed as follows:
+1. **Implement the shearing transform**
+   * Fork the current repository
+   * Modify the README.md file in your fork and put your name above
+   * Study the ```CTransform``` class. It is written in respect to a design pattern, called [Fluent Interface](https://en.wikipedia.org/wiki/Fluent_interface)
+   * Implement ```CTransform::shear()```method (_e.g._ in between ```translate``` and ```rotate```methods)
+   * Achieve the resulting transformation matrix using the ```Mat CTransform::get()``` method
+
+2. **Apply the shearing transform**
+   * Study the new methods and member - variables in the ```CSolid``` class, namely the concept of the _pivot point_ and how it is used in the ```CSolid::transform(const Mat& t)``` method.
+   * In order to apply transformation matrix to a solid use the ```CSolid::transform(const Mat& t)``` method. This method calls ```virtual void ÌPrim::transform(const Mat& t) = 0;``` wich should be implemented in all the derived classes.
+   * Implement method ```void CPrimTriangle::transform(const Mat& t)``` in **PrimTriangle.h** file. Here you need to apply the transformation matrix to the vertices as well as to the normal of the triangle. You can use static methods ```static Vec3f CTransform::point(const Vec3f& p, const Mat& t)``` and ```static Vec3f CTransform::vector(const Vec3f& v, const Mat& t)```
+   * Test your implementation on one of the solid spheres in the scene
 
 ## Problem 2
 ### Target Camera (Points 10 + 10)
