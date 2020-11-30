@@ -69,7 +69,22 @@ To solve this problem proceed as follows:
 
 ## Problem 4
 ### Camera Animation (Points 30)
-
+Finally, we will animate the camera. Proceed as follows:
+1. Add a target camera as ```cam3```to the scene. Initialize its target point to lie in the center of the Moon (150'000, 0, -384) and the origin to be the same as ```cam2```. 
+2. Define the camera's target animation with 2 keypoints: 
+    1. frame 0: target = (150'000, 0, -384);
+    2. frame nFrames - 1: target = (149' 978, 0, -2'603) - location of the Earth at the last frame
+3. Define the camera's origin animation with 3 keypoints:
+    1. frame 0: origin = (149'989, 3, 250)
+    2. frame nFrames / 2: origin = (149'500, -8, -1'300) 
+    3. frmae nFrames - 1: origin = (149'400, 3, - 2'800)
+4. Define the camera's opening angle animation with 3 keypoints:
+    1. frame 0: angle = 3.5
+    2. frame nFrames / 2: angle = 60 
+    3. frmae nFrames - 1: angle = 30
+5. Use linear splines for this kind of animation
+6. (BONUS) Use hermite spline for points 3 and 4
+6. Test your implementation and submit the rendered video in "renders" folder
 
 ## Submission
 Please submit the assignment by making a pull request.
