@@ -42,14 +42,33 @@ So far we have used mostly the perspective cameras, which were defined as camera
         
 In **main.cpp** file substitute your free perspective camera with the target camera and test your implementation.
 
-
-### Shearing Transform (Points 10)
-
 ## Problem 3
-### Camera Animation (Points xx)
+### Geometry Animation (Points 30)
+For this task we will animate some plantes of our Solar system. In particular we are interested in animation the motion of Earth and Moon around the Sun. The scene in **main.cpp** contains already the Sun at location (0, 0, 0), Earth at point (150'000, 0, 0) and Moon at point (150'000, 0, -384). Thus the plane y = 0 corresponds to the [ecliptic](https://en.wikipedia.org/wiki/Ecliptic) and unit 1 corresponds roughly to 1000 km.
+
+For the animation we chose the time period of 24 hours. Our goal is to animate 1) rotation of the Earth around its axis, 2) rotaton of the Earth around the Sun and 3) rotation of the Moon around the Earth. We can use the following facts:
+* Earth makes full cirlce arounts its axis for 24 hours
+* Earth makes full circle around the Sun for 365 days
+* Moon makes full cirlce around the Earth for 655 hours
+* Moon does not rotate around its own axis
+All rotations are counter-clockwise rotations when observed from the "Polar Star" (_i.e._ when observed from a point (0, 1000, 0))
+
+To solve this problem proceed as follows:
+1. Our scene contains already the Sun, the Earth and the Moon. Howeverm before we start animation, we need to tilt the Earth by 23.5° to the ecliptic plane, and rotate the Moon by 90° to face the Earth with its usual side. Use ```transform```object to derive the transformation matrices for these two rotations and apply the first to the Earth and the second to the Moon by using _e.g._ ```moon.transform();``` method. If everything is done correctly, your result should look like below:
+![Moonrise](./doc/Moonrise.jpg)
+2. Chose the amount of frames you will render and change the parameter ```const size_t nFrames``` accordingly. Let it be 180 frames, so the resulting video will be 6 seconds long. Thus, 180 frames will correspond to 24 hours. Calculate 1) the amount of degrees the Earth rotates around its axis for 1 frame; 2) the amount of degrees the Earth rotates around the Sun for 1 frame and 3) the amount of degrees the Moon rotates around the Earth for 1 frame. 
+3. Assuming that the Sun is static and using ```transform```object and pivot points derive the transformation matrices to rotate the Eart around the Sun and its own axis and to rotate the Moon around the Earth.
+4. Apply the derived matrices to the Earth and Moon after rendering every frame in the loop.
+5. Test your implementation and submit the rendered video in "renders" folder
+
+**Note 1:** Since we animate geometry, we need to rebuild the acceleration structure for every new frame.
+
+**Note 2:** If rendering is too slow on your machine, you can reduce the resolution to 240p and / or reduce the amount of primitives by reducing value of the ```nSides``` parameter.
+
+**Note 3:** For debugging you can easily switch betweein cameras using the method ```scene.setActiveCamera();``` in **main.cpp**
 
 ## Problem 4
-### Geometry Animation (Points xx)
+### Camera Animation (Points 30)
 
 
 ## Submission
