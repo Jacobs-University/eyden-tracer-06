@@ -23,10 +23,15 @@
 Mat RenderFrame(void)
 {
 	// Camera resolution
-	const Size resolution(768, 480);
+	//const Size resolution(1920, 1080);
+	const Size resolution(1280, 720);
+	//const Size resolution(768, 480);
+	//const Size resolution(480, 360);
+	//const Size resolution(352, 240);
+	
 
 	// number of sides of the spheres
-	const size_t nSides = 24;
+	const size_t nSides = 32;
 	
 	// Background color
 	const Vec3f bgColor = RGB(0, 0, 0);
@@ -38,8 +43,8 @@ Mat RenderFrame(void)
 	CTransform transform;
 	
 	// Cameras
-	auto cam1 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000, 220, -192), Vec3f(0, -1, 0), Vec3f(0, 0, -1), 90.0f);			// upside-down view
-	auto cam2 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(0, 0, -1), Vec3f(0, 1, 0), 3.5f);	// 
+	auto cam1 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000, 500, -192), Vec3f(0, -1, 0), Vec3f(0, 0, -1), 90.0f);			// upside-down view
+	auto cam2 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(0, 0, -1), Vec3f(0, 1, 0), 3.5f);			// side view
 	scene.add(cam1);				
 	scene.add(cam2);
 
@@ -63,22 +68,24 @@ Mat RenderFrame(void)
 	auto pShaderMoon = std::make_shared<CShaderPhong>(scene, pTextureMoon, 0.1f, 0.9f, 0.0f, 40.0f);
 
 	// Light
-	auto sun = std::make_shared<CLightOmni>(Vec3f::all(3e10), Vec3f(0, 0, 0));
+	auto sun = std::make_shared<CLightOmni>(Vec3f::all(3e10), Vec3f(0, 0, 0), false);
 
 	// Geometry
 	auto earth = CSolidSphere(pShaderEarth, Vec3f(150000, 0, 0), 6.371f, nSides);
 	auto moon = CSolidSphere(pShaderMoon, Vec3f(150000, 0, -384), 1.737f, nSides);
+
+	// --- PUT YOUR CODE HERE ---
+	// Tilt the Earth and rotate the Moon here	
+	earth.transform(transform.get());
+	moon.transform(transform.get());
 
 	// Add everything to the scene
 	scene.add(sun);
 	scene.add(earth);
 	scene.add(moon);
 
-	// Build BSPTree
-	scene.buildAccelStructure(0, 3);
-
 	scene.setActiveCamera(1);
-	Mat img(resolution, CV_32FC3);								// image array
+	Mat img(resolution, CV_32FC3);									// image array
 	Mat frame_img;
 	
 	const size_t nFrames = 1;										// 180 frames - 6 seconds of video
@@ -90,8 +97,15 @@ Mat RenderFrame(void)
 		if (!videoWriter.isOpened()) printf("ERROR: Can't open vide file for writing\n");
 	}
 
+	// --- PUT YOUR CODE HERE ---
+	// derive the transormation matrices here
+	Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
+	Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
 
 	for (size_t frame = 0; frame < nFrames; frame++) {
+		// Build BSPTree
+		scene.buildAccelStructure(20, 3);
+		
 		img.setTo(0);
 		parallel_for_(Range(0, img.rows), [&](const Range& range) {
 			Ray ray;												// primary ray
@@ -107,9 +121,18 @@ Mat RenderFrame(void)
 		if (nFrames > 1) {
 			videoWriter << frame_img;
 			imshow("frame", frame_img);
-			printf("Frame %zu / %zu\n", frame, nFrames);
+			printf("Frame %zu / %zu\n", frame, nFrames); 
 			waitKey(5);
 		}
+
+		// --- PUT YOUR CODE HERE ---
+		// Apply transforms here 
+		Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
+		earth.transform(rotationAroundTheSun * earthTransform);
+		moon.transform(rotationAroundTheSun * moonTransform);
+
+		// --- PUT YOUR CODE HERE ---
+		// Apply camera animation here
 	}
 	return frame_img;
 }
