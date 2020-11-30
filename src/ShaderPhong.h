@@ -67,13 +67,12 @@ public:
 		// iterate over all light sources
 		for (auto pLight : m_scene.getLights()) {
 			// get direction to light, and intensity
-			// --- PUT YOUR CODE HERE ---
 			std::optional<Vec3f> lightIntensity = pLight->illuminate(shadow);
 			if (lightIntensity) {
 				// diffuse term
 				float cosLightNormal = shadow.dir.dot(normal);
-				if (cosLightNormal > 0) {
-					if (m_scene.occluded(shadow))
+				if (cosLightNormal > 0.0f) {
+					if (pLight->shadow() && m_scene.occluded(shadow))
 						continue;
 
 					Vec3f diffuseColor = m_kd * color;
