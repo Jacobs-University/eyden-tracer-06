@@ -1,5 +1,5 @@
 # Practical Assignment 6
-**Dealine**: 3.12.2020
+**Dealine**: 6.12.2020
 
 Please put your name here:  
 **Name:** .......
