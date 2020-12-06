@@ -24,10 +24,10 @@ Mat RenderFrame(void)
 {
 	// Camera resolution
 	//const Size resolution(1920, 1080);
-	// const Size resolution(1280, 720);
+	const Size resolution(1280, 720);
 	//const Size resolution(768, 480);
 	//const Size resolution(480, 360);
-	const Size resolution(352, 240);
+	// const Size resolution(352, 240);
 	
 
 	// number of sides of the spheres
