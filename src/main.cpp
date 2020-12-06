@@ -76,8 +76,8 @@ Mat RenderFrame(void)
 
 	// --- PUT YOUR CODE HERE ---
 	// Tilt the Earth and rotate the Moon here	
-	earth.transform(transform.get());
-	moon.transform(transform.get());
+	earth.transform(transform.rotate(Vec3f(0, 0, 1), -23.5).get());
+	moon.transform(transform.rotate(Vec3f(0, 1, 0), 90).get());
 
 	// Add everything to the scene
 	scene.add(sun);
@@ -99,8 +99,12 @@ Mat RenderFrame(void)
 
 	// --- PUT YOUR CODE HERE ---
 	// derive the transormation matrices here
+	CTransform T;
 	Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
 	Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
+
+	earthTransform = transform.rotate(Vec3f(0.399f, 0.917f, 0), 360.0f / nFrames).get();
+	moonTransform = transform.rotate(Vec3f(0, 1, 0), 13.2f / nFrames).get();
 
 	for (size_t frame = 0; frame < nFrames; frame++) {
 		// Build BSPTree
@@ -128,7 +132,11 @@ Mat RenderFrame(void)
 		// --- PUT YOUR CODE HERE ---
 		// Apply transforms here 
 		Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
+		Vec3f earthPivot = earth.getPivot();
+		std::cout << "earth pivot: " << earthPivot << std::endl;
+		rotationAroundTheSun = transform.translate(earthPivot).rotate(Vec3f(0, 1, 0), 1.0f / nFrames).translate(-earthPivot).get();
 		earth.transform(rotationAroundTheSun * earthTransform);
+		moon.setPivot(earth.getPivot());
 		moon.transform(rotationAroundTheSun * moonTransform);
 
 		// --- PUT YOUR CODE HERE ---
