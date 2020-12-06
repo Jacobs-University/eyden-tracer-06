@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 #include "CameraPerspective.h"
+#include "CameraTarget.h"
 
 #include "PrimSphere.h"
 #include "PrimPlane.h"
@@ -23,6 +24,8 @@
 Mat RenderFrame(void)
 {
 	// Camera resolution
+	
+	
 	//const Size resolution(1920, 1080);
 	const Size resolution(1280, 720);
 	//const Size resolution(768, 480);
@@ -45,8 +48,11 @@ Mat RenderFrame(void)
 	// Cameras
 	auto cam1 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000, 500, -192), Vec3f(0, -1, 0), Vec3f(0, 0, -1), 90.0f);			// upside-down view
 	auto cam2 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(0, 0, -1), Vec3f(0, 1, 0), 3.5f);			// side view
+	auto cam3 = std::make_shared<CCameraTarget>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(150000, 0, -384), Vec3f(0, 1, 0), 3.5f);
+	
 	scene.add(cam1);				
 	scene.add(cam2);
+	scene.add(cam3);
 
 #ifdef WIN32
 	const std::string dataPath = "../data/";
@@ -54,85 +60,99 @@ Mat RenderFrame(void)
 	const std::string dataPath = "../../../data/";
 #endif
 
-	// Textures
-	Mat imgEarth = imread(dataPath + "earth_8k.jpg");
-	if (imgEarth.empty()) printf("ERROR: Texture file is not found!\n");
-	auto pTextureEarth = std::make_shared<CTexture>(imgEarth);
-	Mat imgMoon = imread(dataPath + "moon_8k.jpg");
-	if (imgMoon.empty()) printf("ERROR: Texture file is not found!\n");
-	auto pTextureMoon = std::make_shared<CTexture>(imgMoon);
+// Textures
+Mat imgEarth = imread(dataPath + "earth_8k.jpg");
+if (imgEarth.empty()) printf("ERROR: Texture file is not found!\n");
+auto pTextureEarth = std::make_shared<CTexture>(imgEarth);
+Mat imgMoon = imread(dataPath + "moon_8k.jpg");
+if (imgMoon.empty()) printf("ERROR: Texture file is not found!\n");
+auto pTextureMoon = std::make_shared<CTexture>(imgMoon);
 
 
-	// Shaders
-	auto pShaderEarth = std::make_shared<CShaderPhong>(scene, pTextureEarth, 0.1f, 0.9f, 0.0f, 40.0f);
-	auto pShaderMoon = std::make_shared<CShaderPhong>(scene, pTextureMoon, 0.1f, 0.9f, 0.0f, 40.0f);
+// Shaders
+auto pShaderEarth = std::make_shared<CShaderPhong>(scene, pTextureEarth, 0.1f, 0.9f, 0.0f, 40.0f);
+auto pShaderMoon = std::make_shared<CShaderPhong>(scene, pTextureMoon, 0.1f, 0.9f, 0.0f, 40.0f);
 
-	// Light
-	auto sun = std::make_shared<CLightOmni>(Vec3f::all(3e10), Vec3f(0, 0, 0), false);
+// Light
+auto sun = std::make_shared<CLightOmni>(Vec3f::all(3e10), Vec3f(0, 0, 0), false);
 
-	// Geometry
-	auto earth = CSolidSphere(pShaderEarth, Vec3f(150000, 0, 0), 6.371f, nSides);
-	auto moon = CSolidSphere(pShaderMoon, Vec3f(150000, 0, -384), 1.737f, nSides);
+// Geometry
+auto earth = CSolidSphere(pShaderEarth, Vec3f(150000, 0, 0), 6.371f, nSides);
+auto moon = CSolidSphere(pShaderMoon, Vec3f(150000, 0, -384), 1.737f, nSides);
 
-	// --- PUT YOUR CODE HERE ---
-	// Tilt the Earth and rotate the Moon here	
-	earth.transform(transform.get());
-	moon.transform(transform.get());
+// --- PUT YOUR CODE HERE ---
+// Tilt the Earth and rotate the Moon here	
 
-	// Add everything to the scene
-	scene.add(sun);
-	scene.add(earth);
-	scene.add(moon);
+earth.transform(transform.rotate(Vec3f(0, 0, 1), -23.5).get());
+moon.transform(transform.rotate(Vec3f(0, 1, 0), 90).get());
 
-	scene.setActiveCamera(1);
-	Mat img(resolution, CV_32FC3);									// image array
-	Mat frame_img;
-	
-	const size_t nFrames = 1;										// 180 frames - 6 seconds of video
-	VideoWriter videoWriter;
-	if (nFrames) {
-		auto codec = VideoWriter::fourcc('M', 'J', 'P', 'G');		// Native windows codec
-		//auto codec = VideoWriter::fourcc('H', '2', '6', '4');		// Try it on MacOS
-		videoWriter.open("video.avi", codec, 30, resolution);
-		if (!videoWriter.isOpened()) printf("ERROR: Can't open vide file for writing\n");
+//earth.transform(transform.get());
+//moon.transform(transform.get());
+
+// Add everything to the scene
+scene.add(sun);
+scene.add(earth);
+scene.add(moon);
+
+scene.setActiveCamera(1);
+Mat img(resolution, CV_32FC3);									// image array
+Mat frame_img;
+
+const size_t nFrames = 180;										// 180 frames - 6 seconds of video
+VideoWriter videoWriter;
+if (nFrames) {
+	auto codec = VideoWriter::fourcc('M', 'J', 'P', 'G');		// Native windows codec
+	//auto codec = VideoWriter::fourcc('H', '2', '6', '4');		// Try it on MacOS
+	videoWriter.open("video.avi", codec, 30, resolution);
+	if (!videoWriter.isOpened()) printf("ERROR: Can't open vide file for writing\n");
+}
+
+// --- PUT YOUR CODE HERE ---
+// derive the transormation matrices here
+//Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
+//Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
+
+Mat earthTransform = transform.rotate(Vec3f(0.399f, 0.917f, 0), 360.0f / nFrames).get();
+Mat moonTransform = transform.rotate(Vec3f(0, 1, 0), 13.2f / nFrames).get();
+
+for (size_t frame = 0; frame < nFrames; frame++) {
+	// Build BSPTree
+	scene.buildAccelStructure(20, 3);
+
+	img.setTo(0);
+	parallel_for_(Range(0, img.rows), [&](const Range& range) {
+		Ray ray;												// primary ray
+		for (int y = range.start; y < range.end; y++) {
+			Vec3f* pImg = img.ptr<Vec3f>(y);					// fast processing via pointers
+			for (int x = 0; x < img.cols; x++) {
+				scene.getActiveCamera()->InitRay(ray, x, y, Vec2f::all(0.5f));	// initialize ray
+				pImg[x] = scene.RayTrace(ray);
+			} // x
+		} // y
+		});
+	img.convertTo(frame_img, CV_8UC3, 255);
+	if (nFrames > 1) {
+		videoWriter << frame_img;
+		imshow("frame", frame_img);
+		printf("Frame %zu / %zu\n", frame, nFrames);
+		waitKey(5);
 	}
 
 	// --- PUT YOUR CODE HERE ---
-	// derive the transormation matrices here
-	Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
-	Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
+	// Apply transforms here 
+	//Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
+	Vec3f earthPivot = earth.getPivot();
+	Mat rotationAroundTheSun = 
+		transform.translate(earthPivot).rotate(Vec3f(0, 1, 0), 1.0f / nFrames).translate(-earthPivot).get();
 
-	for (size_t frame = 0; frame < nFrames; frame++) {
-		// Build BSPTree
-		scene.buildAccelStructure(20, 3);
-		
-		img.setTo(0);
-		parallel_for_(Range(0, img.rows), [&](const Range& range) {
-			Ray ray;												// primary ray
-			for (int y = range.start; y < range.end; y++) {
-				Vec3f* pImg = img.ptr<Vec3f>(y);					// fast processing via pointers
-				for (int x = 0; x < img.cols; x++) {
-					scene.getActiveCamera()->InitRay(ray, x, y, Vec2f::all(0.5f));	// initialize ray
-					pImg[x] = scene.RayTrace(ray);
-				} // x
-			} // y
-			});
-		img.convertTo(frame_img, CV_8UC3, 255);
-		if (nFrames > 1) {
-			videoWriter << frame_img;
-			imshow("frame", frame_img);
-			printf("Frame %zu / %zu\n", frame, nFrames); 
-			waitKey(5);
-		}
+	earth.transform(rotationAroundTheSun * earthTransform);
 
-		// --- PUT YOUR CODE HERE ---
-		// Apply transforms here 
-		Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
-		earth.transform(rotationAroundTheSun * earthTransform);
-		moon.transform(rotationAroundTheSun * moonTransform);
+	moon.setPivot(earth.getPivot());
+	moon.transform(rotationAroundTheSun * moonTransform);
 
-		// --- PUT YOUR CODE HERE ---
-		// Apply camera animation here
+	// --- PUT YOUR CODE HERE ---
+	// Apply camera animation here
+
 	}
 	return frame_img;
 }
