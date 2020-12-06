@@ -37,7 +37,26 @@ public:
     virtual ~CCameraPerspective(void) = default;
 
 	// --- PUT YOUR CODE HERE ---
-	
+    virtual void setPosition(const Vec3f& pos) {
+        m_pos = pos;
+    }
+    Vec3f getPosition(void) const {
+        return m_pos;
+    }
+
+    virtual void setDirection(const Vec3f& dir) {
+        m_dir = dir;
+    }
+    Vec3f getDirection(void) const {
+        return m_dir;
+    }
+    virtual void setAngle(float angle) {
+        m_focus = 1.0f / tanf(angle * Pif / 360);
+    }
+    float getAngle(void) const {
+        return 360 * atanf(1.0f / m_focus) / Pif;
+    }
+
     virtual void InitRay(Ray& ray, int x, int y, const Vec2f& sample = Vec2f::all(0.5f)) override
     {
         float dx = sample[0];	// x-shift to the center of the pixel
