@@ -2,7 +2,9 @@
 **Dealine**: 6.12.2020
 
 Please put your name here:  
-**Name:** .......
+**Name:** Checiu Eliza
+
+I have used Otmane's advice on this problem.
 
 ## Problem 1
 ### Shearing Transform (Points 10 + 10)
