@@ -48,11 +48,8 @@ Mat RenderFrame(void)
 	scene.add(cam1);				
 	scene.add(cam2);
 
-#ifdef WIN32
 	const std::string dataPath = "../data/";
-#else
-	const std::string dataPath = "../../../data/";
-#endif
+
 
 	// Textures
 	Mat imgEarth = imread(dataPath + "earth_8k.jpg");
@@ -99,8 +96,10 @@ Mat RenderFrame(void)
 
 	// --- PUT YOUR CODE HERE ---
 	// derive the transormation matrices here
-	Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
-	Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
+
+	CTransform T;
+	Mat earthTransform = transform.rotate(Vec3f(0.399f, 0.917, 0), 360.0f / nFrames).get();
+	Mat moonTransform = transform.rotate(Vec3f(0, 1, 0), 13.2f / nFrames).get();
 
 	for (size_t frame = 0; frame < nFrames; frame++) {
 		// Build BSPTree
@@ -127,8 +126,10 @@ Mat RenderFrame(void)
 
 		// --- PUT YOUR CODE HERE ---
 		// Apply transforms here 
-		Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
+		Vec3f earthPivot = earth.getPivot();
+		Mat rotationAroundTheSun = transform.translate(earthPivot).rotate(Vec3f(0, 1, 0), 1.0f / nFrames).translate(-earthPivot).get();
 		earth.transform(rotationAroundTheSun * earthTransform);
+		moon.setPivot(earth.getPivot());
 		moon.transform(rotationAroundTheSun * moonTransform);
 
 		// --- PUT YOUR CODE HERE ---
