@@ -4,6 +4,8 @@
 Please put your name here:  
 **Name:** Checiu Eliza
 
+I have used Otmane's advice on this problem.
+
 ## Problem 1
 ### Shearing Transform (Points 10 + 10)
 Now the framework includes the **Tranform.h** file which contains the ```CTransform``` class. This class implements most of the affine transormations discussed at the lectures (when studying the class please pay extra attention to the rotation transoform). The main goal of this class is to deliver the transformation matrix with ```CTransform::get()```. Within this problem we will implement shear transform. Proceed as follows:
