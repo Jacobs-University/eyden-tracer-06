@@ -101,6 +101,30 @@ public:
 	}
 
 	// --- PUT YOUR CODE HERE ---
+	/**
+	* @brief Adds shear along the coordinates axises by vector \b T = (tx, ty, tz)
+	* @param k The axis along which we shear
+	* @param The shear values
+	* @returns Common Transformation Class with modified transformation matrix
+	*/
+	CTransform	shear(float h_xy, float h_xz, float h_yx, float h_yz, float h_zx, float h_zy) const {
+		Mat t = Mat::eye(4, 4, CV_32FC1);
+		
+		t.at<float>(0, 0) = 1;
+		t.at<float>(0, 1) = h_xy;
+		t.at<float>(0, 2) = h_xz;
+
+		t.at<float>(1, 0) = h_yx;
+		t.at<float>(1, 1) = 1;
+		t.at<float>(1, 2) = h_yz;
+
+		t.at<float>(2, 0) = h_zx;
+		t.at<float>(2, 1) = h_zy;
+		t.at<float>(2, 2) = 1;
+
+
+		return CTransform(t * m_t);
+	}
 
 	/**
 	* @brief Adds rotation around axis \b v by angle \b theta
