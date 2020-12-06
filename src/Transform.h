@@ -100,7 +100,25 @@ public:
 		return CTransform(t * m_t);
 	}
 
-	// --- PUT YOUR CODE HERE ---
+	CTransform shear(float tX, float  tY, float tZ, size_t axis) const
+	{
+        Mat t = Mat::eye(4, 4, CV_32FC1);
+        if (axis == 0)
+        {
+            t.at<float>(1, 0) = tY;
+            t.at<float>(2, 0) = tZ;
+
+	    } else if (axis == 1)
+	    {
+            t.at<float>(0, 1) = tX;
+            t.at<float>(2, 1) = tZ;
+	    } else if (axis == 2)
+	    {
+            t.at<float>(0, 2) = tX;
+            t.at<float>(1, 2) = tY;
+	    }
+        return CTransform(t * m_t);
+	}
 
 	/**
 	* @brief Adds rotation around axis \b v by angle \b theta
