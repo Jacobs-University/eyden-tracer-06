@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 #include "CameraPerspective.h"
+#include "CameraTarget.h"
 
 #include "PrimSphere.h"
 #include "PrimPlane.h"
@@ -23,6 +24,7 @@
 Mat RenderFrame(void)
 {
 	// Camera resolution
+    //const Size resolution(3840, 2160);
 	//const Size resolution(1920, 1080);
 	const Size resolution(1280, 720);
 	//const Size resolution(768, 480);
@@ -45,14 +47,12 @@ Mat RenderFrame(void)
 	// Cameras
 	auto cam1 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000, 500, -192), Vec3f(0, -1, 0), Vec3f(0, 0, -1), 90.0f);			// upside-down view
 	auto cam2 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(0, 0, -1), Vec3f(0, 1, 0), 3.5f);			// side view
-	scene.add(cam1);				
+    auto cam3 = std::make_shared<CCameraTarget>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(150000, 0, -384), Vec3f(0, 1, 0), 3.5f);
+    scene.add(cam1);
 	scene.add(cam2);
+	scene.add(cam3);
 
-#ifdef WIN32
-	const std::string dataPath = "../data/";
-#else
-	const std::string dataPath = "../../../data/";
-#endif
+	const std::string dataPath = "/Users/sabyr./Desktop/CG/eyden-tracer-06/data/";
 
 	// Textures
 	Mat imgEarth = imread(dataPath + "earth_8k.jpg");
@@ -76,8 +76,8 @@ Mat RenderFrame(void)
 
 	// --- PUT YOUR CODE HERE ---
 	// Tilt the Earth and rotate the Moon here	
-	earth.transform(transform.get());
-	moon.transform(transform.get());
+	earth.transform(transform.rotate(Vec3f(0, 0, 1), -23.5).get());
+	moon.transform(transform.rotate(Vec3f(0, 1, 0), 90).get());
 
 	// Add everything to the scene
 	scene.add(sun);
@@ -88,9 +88,10 @@ Mat RenderFrame(void)
 	Mat img(resolution, CV_32FC3);									// image array
 	Mat frame_img;
 	
-	const size_t nFrames = 1;										// 180 frames - 6 seconds of video
+	const size_t nFrames = 180;										// 180 frames - 6 seconds of video
 	VideoWriter videoWriter;
 	if (nFrames) {
+	    // I am using Mac, but windows codec worked with me
 		auto codec = VideoWriter::fourcc('M', 'J', 'P', 'G');		// Native windows codec
 		//auto codec = VideoWriter::fourcc('H', '2', '6', '4');		// Try it on MacOS
 		videoWriter.open("video.avi", codec, 30, resolution);
@@ -98,9 +99,15 @@ Mat RenderFrame(void)
 	}
 
 	// --- PUT YOUR CODE HERE ---
-	// derive the transormation matrices here
-	Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
-	Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
+	// derive the transformation matrices here
+	CTransform T;
+	//Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
+	//Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
+
+	// sin(66.5 deg) = 0.917
+	// cos(66.6 deg) = 0.399
+	Mat earthTransform = transform.rotate(Vec3f(0.399f, 0.917, 0), 360.0f / nFrames).get();
+    Mat moonTransform = transform.rotate(Vec3f(0, 1, 0), 13.2f / nFrames).get();
 
 	for (size_t frame = 0; frame < nFrames; frame++) {
 		// Build BSPTree
@@ -127,12 +134,17 @@ Mat RenderFrame(void)
 
 		// --- PUT YOUR CODE HERE ---
 		// Apply transforms here 
-		Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
+		//Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
+		Vec3f ePivot = earth.getPivot();
+		std :: cout << "Earth pivot: " << ePivot << std :: endl;
+		Mat rotationAroundTheSun = transform.translate(ePivot).rotate(Vec3f(0, 1, 0), 1.0f / nFrames).translate(-ePivot).get();
 		earth.transform(rotationAroundTheSun * earthTransform);
+		moon.setPivot(earth.getPivot());
 		moon.transform(rotationAroundTheSun * moonTransform);
 
 		// --- PUT YOUR CODE HERE ---
 		// Apply camera animation here
+
 	}
 	return frame_img;
 }
@@ -142,8 +154,8 @@ int main(int argc, char* argv[])
 	DirectGraphicalModels::Timer::start("Rendering...");
 	Mat img = RenderFrame();
 	DirectGraphicalModels::Timer::stop();
-	imshow("Image", img);
+    imwrite("image.jpg", img);
+    imshow("Image", img);
 	waitKey();
-	imwrite("image.jpg", img);
 	return 0;
 }

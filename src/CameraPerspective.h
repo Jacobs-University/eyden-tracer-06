@@ -37,7 +37,30 @@ public:
     virtual ~CCameraPerspective(void) = default;
 
 	// --- PUT YOUR CODE HERE ---
-	
+	virtual void setPosition(const Vec3f& pos) {
+	    m_pos = pos;
+	}
+
+    Vec3f getPosition(void) const {
+	    return m_pos;
+	}
+
+    virtual void setDirection(const Vec3f& dir) {
+	    m_dir = dir;
+	}
+
+    Vec3f getDirection(void) const {
+	    return m_dir;
+	}
+
+    virtual void setAngle(float angle) {
+	    m_focus = 1.0f / tanf(angle * Pif / 360);
+	}
+
+    float getAngle(void) const {
+        (360 / Pif * atan(1 / m_focus));
+    }
+
     virtual void InitRay(Ray& ray, int x, int y, const Vec2f& sample = Vec2f::all(0.5f)) override
     {
         float dx = sample[0];	// x-shift to the center of the pixel
@@ -53,9 +76,10 @@ public:
     }
 
 
+// input values
+Vec3f m_pos;
 private:
-    // input values
-    Vec3f m_pos;    ///< Camera origin (center of projection)
+    ///< Camera origin (center of projection)
     Vec3f m_dir;    ///< Camera viewing direction
     Vec3f m_up;     ///< Camera up-vector
     float m_focus;  ///< The focal length
