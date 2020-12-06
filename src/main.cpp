@@ -24,10 +24,10 @@ Mat RenderFrame(void)
 {
 	// Camera resolution
 	//const Size resolution(1920, 1080);
-	const Size resolution(1280, 720);
+	// const Size resolution(1280, 720);
 	//const Size resolution(768, 480);
 	//const Size resolution(480, 360);
-	//const Size resolution(352, 240);
+	const Size resolution(352, 240);
 	
 
 	// number of sides of the spheres
@@ -51,7 +51,7 @@ Mat RenderFrame(void)
 #ifdef WIN32
 	const std::string dataPath = "../data/";
 #else
-	const std::string dataPath = "../../../data/";
+	const std::string dataPath = "../data/";
 #endif
 
 	// Textures
@@ -100,11 +100,8 @@ Mat RenderFrame(void)
 	// --- PUT YOUR CODE HERE ---
 	// derive the transormation matrices here
 	CTransform T;
-	Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
-	Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
-
-	earthTransform = transform.rotate(Vec3f(0.399f, 0.917f, 0), 360.0f / nFrames).get();
-	moonTransform = transform.rotate(Vec3f(0, 1, 0), 13.2f / nFrames).get();
+	Mat earthTransform = transform.rotate(Vec3f(0.399f, 0.917, 0), 360.0f / nFrames).get();
+	Mat moonTransform = transform.rotate(Vec3f(0, 1, 0), 13.2f / nFrames).get();
 
 	for (size_t frame = 0; frame < nFrames; frame++) {
 		// Build BSPTree
@@ -131,10 +128,10 @@ Mat RenderFrame(void)
 
 		// --- PUT YOUR CODE HERE ---
 		// Apply transforms here 
-		Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
+		// Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
 		Vec3f earthPivot = earth.getPivot();
 		std::cout << "earth pivot: " << earthPivot << std::endl;
-		rotationAroundTheSun = transform.translate(earthPivot).rotate(Vec3f(0, 1, 0), 1.0f / nFrames).translate(-earthPivot).get();
+		Mat rotationAroundTheSun = transform.translate(earthPivot).rotate(Vec3f(0, 1, 0), 1.0f / nFrames).translate(-earthPivot).get();
 		earth.transform(rotationAroundTheSun * earthTransform);
 		moon.setPivot(earth.getPivot());
 		moon.transform(rotationAroundTheSun * moonTransform);
