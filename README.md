@@ -2,7 +2,7 @@
 **Dealine**: 21.11.2021
 
 Please put your name here:  
-**Name:** .......
+**Name:** Katrin von Seggern, Jordan Streete
 
 ## Problem 1
 ### Shearing Transform (Points 10 + 10)
