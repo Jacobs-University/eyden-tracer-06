@@ -2,7 +2,20 @@
 **Dealine**: 21.11.2021
 
 Please put your name here:  
-**Name:** .......
+**Name:** Otmane Sabir.
+
+## Submission Notes:
+
+1. The current camera animation keeps adding the recently adjusted camera to the camera
+vector in the scene because it seems like the getActiveCamera method points to the interface ICamera
+and not our TargetCamera. I didn't want to modify files that didn't have put youe code here so I found
+this solution to be the most complying with the submission notes. However, we end up having a vector of 182
+cameras which is not ideal. 
+
+2. Given that no comparision videos were given, I wasn't sure if this is
+what its supposed to look like exactly.
+
+3. Finals are catching up so I couldn't implement the hermite spline...
 
 ## Problem 1
 ### Shearing Transform (Points 10 + 10)
