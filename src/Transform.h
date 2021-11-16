@@ -100,7 +100,37 @@ public:
 		return CTransform(t * m_t);
 	}
 
-	// --- PUT YOUR CODE HERE ---
+    /**
+	* @brief Adds shearing along the coordinates axes by \b sx, \b sy and \b sz
+    * @param shearAxis Shearing axis
+	* @param sx Shear value along the X axis
+	* @param sy Shear value along the Y axis
+	* @param sz Shear value along the Z axis
+	* @returns Common Transformation Class with modified transformation matrix
+	*/
+	CTransform	shear(int shearAxis, float sx, float sy, float sz) const { return shear(shearAxis, Vec3f(sx, sy, sz)); }
+    /**
+	* @brief Adds shearing along the coordinates xaes by vector \b T = (sx, sy, sz)
+    * @param shearAxis Shearing axis
+	* @param T The shear vector
+	* @returns Common Transformation Class with modified transformation matrix
+	*/
+	CTransform	shear(int shearAxis, const Vec3f& T) const {
+		Mat t = Mat::eye(4, 4, CV_32FC1);
+
+        if (shearAxis == 0) {
+            t.at<float>(1, 0) = T.val[1];
+            t.at<float>(2, 0) = T.val[2];
+        } else if (shearAxis == 1) {
+            t.at<float>(0, 1) = T.val[0];
+            t.at<float>(2, 1) = T.val[2];
+        } else if (shearAxis == 2) {
+            t.at<float>(0, 2) = T.val[0];
+            t.at<float>(1, 2) = T.val[1];
+        }
+
+		return CTransform(t * m_t);
+	}
 
 	/**
 	* @brief Adds rotation around axis \b v by angle \b theta
