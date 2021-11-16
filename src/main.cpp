@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 #include "CameraPerspective.h"
+#include "CameraTarget.h"
 
 #include "PrimSphere.h"
 #include "PrimPlane.h"
@@ -23,15 +24,15 @@
 Mat RenderFrame(void)
 {
 	// Camera resolution
-	//const Size resolution(1920, 1080);
-	const Size resolution(1280, 720);
+	const Size resolution(1920, 1080);
+	// const Size resolution(1280, 720);
 	//const Size resolution(768, 480);
 	//const Size resolution(480, 360);
 	//const Size resolution(352, 240);
 	
 
 	// number of sides of the spheres
-	const size_t nSides = 32;
+	const size_t nSides = 64;
 	
 	// Background color
 	const Vec3f bgColor = RGB(0, 0, 0);
@@ -40,18 +41,26 @@ Mat RenderFrame(void)
 	CScene scene(bgColor);
 
 	// Define transform class;
-	CTransform transform;
+    CTransform transform;
+
+    // Cameras
+    auto cam1 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000, 500, -192), Vec3f(0, -1, 0), Vec3f(0, 0, -1), 90.0f);			// upside-down view
+    auto cam2 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(0, 0, -1), Vec3f(0, 1, 0), 3.5f);			// side view
+
+    // Target camera looking at the original position of the earth from the sun's pivot point
+    // auto cam3 = std::make_shared<CCameraTarget>(resolution, Vec3f(0, 0, 0), Vec3f(150000, 0, 0), Vec3f(0, 1, 0), 15.0f);
+    
+    // Target camera for problem 4
+    auto cam3 = std::make_shared<CCameraTarget>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(150000, 0, -384), Vec3f(0, 1, 0), 3.5f);
 	
-	// Cameras
-	auto cam1 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000, 500, -192), Vec3f(0, -1, 0), Vec3f(0, 0, -1), 90.0f);			// upside-down view
-	auto cam2 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(0, 0, -1), Vec3f(0, 1, 0), 3.5f);			// side view
-	scene.add(cam1);				
+    scene.add(cam1);
 	scene.add(cam2);
+    scene.add(cam3);
 
 #ifdef WIN32
 	const std::string dataPath = "../data/";
 #else
-	const std::string dataPath = "../../../data/";
+	const std::string dataPath = "../../data/";
 #endif
 
 	// Textures
@@ -74,21 +83,23 @@ Mat RenderFrame(void)
 	auto earth = CSolidSphere(pShaderEarth, Vec3f(150000, 0, 0), 6.371f, nSides);
 	auto moon = CSolidSphere(pShaderMoon, Vec3f(150000, 0, -384), 1.737f, nSides);
 
-	// --- PUT YOUR CODE HERE ---
-	// Tilt the Earth and rotate the Moon here	
-	earth.transform(transform.get());
-	moon.transform(transform.get());
+    // Using earth and moon models with 100x radius
+    // auto earth = CSolidSphere(pShaderEarth, Vec3f(150000, 0, 0), 637.1f, nSides);
+    // auto moon = CSolidSphere(pShaderMoon, Vec3f(150000, 0, -384 * 10), 173.7f, nSides);
+
+	earth.transform(transform.rotate(Vec3f(0, 0, 1), -23.5f).get());
+    moon.transform(transform.rotate(Vec3f(0, 1, 0), 90.0f).get());
 
 	// Add everything to the scene
 	scene.add(sun);
 	scene.add(earth);
 	scene.add(moon);
 
-	scene.setActiveCamera(1);
+	scene.setActiveCamera(3);
 	Mat img(resolution, CV_32FC3);									// image array
 	Mat frame_img;
 	
-	const size_t nFrames = 1;										// 180 frames - 6 seconds of video
+	const size_t nFrames = 180;										// 180 frames - 6 seconds of video
 	VideoWriter videoWriter;
 	if (nFrames) {
 		auto codec = VideoWriter::fourcc('M', 'J', 'P', 'G');		// Native windows codec
@@ -97,10 +108,37 @@ Mat RenderFrame(void)
 		if (!videoWriter.isOpened()) printf("ERROR: Can't open vide file for writing\n");
 	}
 
-	// --- PUT YOUR CODE HERE ---
-	// derive the transormation matrices here
-	Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
-	Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
+    float degEarthRotateAroundSelf = 360.0f / nFrames;
+    float degEarthRotateAroundSun = (360.0f / 365.0f) / nFrames;
+    float degMoonRotateAroundEarth = 24.0f * 360.0f / 655.0f / nFrames;
+
+    Mat earthTransform = Mat::eye(4, 4, CV_32FC1) * transform.rotate(Vec3f(0, 1, 0), degEarthRotateAroundSelf).get();
+	Mat moonTransform = Mat::eye(4, 4, CV_32FC1) * transform.rotate(Vec3f(0, 1, 0), degMoonRotateAroundEarth).get();
+    Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1) * transform.rotate(Vec3f(0, 1, 0), degEarthRotateAroundSun).get();
+
+    Vec3f sunPivot = Vec3f::all(0);
+    Vec3f earthPivot = earth.getPivot();
+    moon.setPivot(earthPivot);
+
+    // Calculate the direction and norm of the target movement
+    Vec3f fTargetKeyframePos = Vec3f(150000, 0, -384);
+	Vec3f lTargetKeyframePos = Vec3f(149978, 0, -2603);
+
+    Vec3f targetVector = lTargetKeyframePos - fTargetKeyframePos;
+    Vec3f targetVectorDirection = normalize(targetVector); 
+    auto normTargetVector = norm(targetVector);
+
+    Vec3f fCameraOriginKeyframePos = Vec3f(149989, 3, 250);
+    Vec3f mCameraOriginKeyframePos = Vec3f(149500, -8, -1300);
+    Vec3f lCameraOriginKeyframePos = Vec3f(149400, 3, -2800);
+
+    Vec3f cameraVector = Vec3f::all(0);
+
+    float fCameraOpeningAngleKeyframeVal = 3.5;
+    float mCameraOpeningAngleKeyframeVal = 60;
+    float lCameraOpeningAngleKeyframeVal = 30;
+
+    float newCameraOpeningAngle = 0;
 
 	for (size_t frame = 0; frame < nFrames; frame++) {
 		// Build BSPTree
@@ -124,16 +162,51 @@ Mat RenderFrame(void)
 			printf("Frame %zu / %zu\n", frame, nFrames); 
 			waitKey(5);
 		}
+        
+        // Rotate moon around earth pivot
+        moon.setPivot(earthPivot);
+        moon.transform(moonTransform);
 
-		// --- PUT YOUR CODE HERE ---
-		// Apply transforms here 
-		Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
-		earth.transform(rotationAroundTheSun * earthTransform);
-		moon.transform(rotationAroundTheSun * moonTransform);
+        // Rotate earth around its pivot
+        earth.setPivot(earthPivot);
+        earth.transform(earthTransform);
 
-		// --- PUT YOUR CODE HERE ---
-		// Apply camera animation here
+        // Rotate earth and moon around sun's pivot
+        earth.setPivot(sunPivot);
+        moon.setPivot(sunPivot);
+		earth.transform(rotationAroundTheSun);
+		moon.transform(rotationAroundTheSun);
+
+        // Update earthPivot to follow the origin of the earth object
+        earthPivot = transform.point(earthPivot, rotationAroundTheSun);
+
+        float step = static_cast<float>(frame + 1) / static_cast<float>(nFrames);
+
+        // Update target of camera
+        Vec3f newTarget = fTargetKeyframePos + targetVectorDirection * (step * normTargetVector);
+		cam3->setTarget(newTarget);
+
+        // Update origin of camera
+        if (frame < nFrames / 2)
+            cameraVector = mCameraOriginKeyframePos - fCameraOriginKeyframePos;
+        else
+            cameraVector = lCameraOriginKeyframePos - mCameraOriginKeyframePos;
+
+        Vec3f cameraVectorDirection = normalize(cameraVector); 
+        auto normCameraVector = norm(cameraVector);
+
+        Vec3f newPosition = (frame < (nFrames / 2) ? fCameraOriginKeyframePos : mCameraOriginKeyframePos) + cameraVectorDirection * (2.0f * (step - 0.5f * (frame >= nFrames / 2)) * normCameraVector);
+        cam3->setPosition(newPosition);
+
+        // Update camera angle (focal length)
+        if (frame < nFrames / 2)
+            newCameraOpeningAngle = fCameraOpeningAngleKeyframeVal + 2.0f * step * (mCameraOpeningAngleKeyframeVal - fCameraOpeningAngleKeyframeVal);
+        else
+            newCameraOpeningAngle = mCameraOpeningAngleKeyframeVal + 2.0f * (step - 0.5f) * (lCameraOpeningAngleKeyframeVal - mCameraOpeningAngleKeyframeVal);
+
+        cam3->setAngle(newCameraOpeningAngle);
 	}
+
 	return frame_img;
 }
 
