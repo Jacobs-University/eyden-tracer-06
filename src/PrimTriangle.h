@@ -3,6 +3,7 @@
 #pragma once
 
 #include "IPrim.h"
+#include "Transform.h"
 
 // ================================ Triangle Primitive Class ================================
 /**
@@ -81,7 +82,23 @@ public:
 	}
 
 	virtual void transform(const Mat& t) override {
-		// --- PUT YOUR CODE HERE ---
+        m_a = CTransform::point(m_a, t);
+        m_b = CTransform::point(m_b, t);
+        m_c = CTransform::point(m_c, t);
+
+        Mat t1 = t.inv().t();
+
+        if (m_na)
+            m_na = normalize(CTransform::vector(m_na.value(), t1));
+
+        if (m_nb)
+            m_nb = normalize(CTransform::vector(m_nb.value(), t1));
+
+        if (m_nc)
+            m_nc = normalize(CTransform::vector(m_nc.value(), t1));
+
+        m_edge1 = m_b - m_a;
+        m_edge2 = m_c - m_a;
 	}
 
 	virtual Vec3f getNormal(const Ray& ray) const override
