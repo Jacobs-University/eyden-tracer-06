@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 #include "CameraPerspective.h"
+#include "CameraTarget.h"
 
 #include "PrimSphere.h"
 #include "PrimPlane.h"
@@ -45,13 +46,15 @@ Mat RenderFrame(void)
 	// Cameras
 	auto cam1 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000, 500, -192), Vec3f(0, -1, 0), Vec3f(0, 0, -1), 90.0f);			// upside-down view
 	auto cam2 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(0, 0, -1), Vec3f(0, 1, 0), 3.5f);			// side view
+	auto cam3 = std::make_shared<CCameraTarget>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(150000, 0, -384), Vec3f(0, 1, 0), 3.5f);			// side view
 	scene.add(cam1);				
 	scene.add(cam2);
+	scene.add(cam3);
 
 #ifdef WIN32
 	const std::string dataPath = "../data/";
 #else
-	const std::string dataPath = "../../../data/";
+	const std::string dataPath = "../data/";
 #endif
 
 	// Textures
@@ -74,33 +77,43 @@ Mat RenderFrame(void)
 	auto earth = CSolidSphere(pShaderEarth, Vec3f(150000, 0, 0), 6.371f, nSides);
 	auto moon = CSolidSphere(pShaderMoon, Vec3f(150000, 0, -384), 1.737f, nSides);
 
-	// --- PUT YOUR CODE HERE ---
+	// CTransform shear = transform.shear(2, Vec3f(0.5, 0.5, 0.5));
+	
 	// Tilt the Earth and rotate the Moon here	
-	earth.transform(transform.get());
-	moon.transform(transform.get());
+	earth.transform(transform.rotate(Vec3f(0.0f, 0.0f, 1.0f), -23.5f).get());
+	moon.transform(transform.rotate(Vec3f(0.0f, 1.0f, 0.0f), 90.0f).get());
 
 	// Add everything to the scene
 	scene.add(sun);
 	scene.add(earth);
 	scene.add(moon);
 
-	scene.setActiveCamera(1);
+	scene.setActiveCamera(3);
 	Mat img(resolution, CV_32FC3);									// image array
 	Mat frame_img;
 	
-	const size_t nFrames = 1;										// 180 frames - 6 seconds of video
+	const size_t nFrames = 180;										// 180 frames - 6 seconds of video
 	VideoWriter videoWriter;
+	int frameRate = 30;
 	if (nFrames) {
-		auto codec = VideoWriter::fourcc('M', 'J', 'P', 'G');		// Native windows codec
-		//auto codec = VideoWriter::fourcc('H', '2', '6', '4');		// Try it on MacOS
-		videoWriter.open("video.avi", codec, 30, resolution);
+		// auto codec = VideoWriter::fourcc('M', 'J', 'P', 'G');		// Native windows codec
+		auto codec = VideoWriter::fourcc('H', '2', '6', '4');		// Try it on MacOS
+		videoWriter.open("video.avi", codec, frameRate, resolution);
 		if (!videoWriter.isOpened()) printf("ERROR: Can't open vide file for writing\n");
 	}
 
-	// --- PUT YOUR CODE HERE ---
 	// derive the transormation matrices here
-	Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
-	Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
+	moon.setPivot(earth.getPivot());
+	Mat earthTransform = transform.rotate(Vec3f(0.0f, 1.0f, 0.0f), 360.0f / (6*frameRate)).get();
+	Mat moonTransform = transform.rotate(Vec3f(0.0f, 1.0f, 0.0f), (360.0f / (6*frameRate)) / 27.29f).get();
+	Mat rotationAroundTheSun = transform.rotate(Vec3f(0.0f, 1.0f, 0.0f), (360.0f / (6*frameRate)) / 365.0f).get();
+
+	//derive camera animation steps here
+	Vec3f targetStep = (Vec3f(149989, 0, -2603) - Vec3f(150000, 0, -384)) * (1.0f/nFrames);
+	Vec3f originStepA = (Vec3f(149500, -8, -1300) - Vec3f(149989, 3, 250)) * (1.0f/(nFrames/2));
+	Vec3f originStepB = (Vec3f(149400, 3, -2800) - Vec3f(149500, -8, -1300)) * (1.0f/(nFrames/2));
+	float angleStepA = (60 - 3.5) * (1.0f/(nFrames/2));
+	float angleStepB = (30 - 60) * (1.0f/(nFrames/2));
 
 	for (size_t frame = 0; frame < nFrames; frame++) {
 		// Build BSPTree
@@ -125,14 +138,31 @@ Mat RenderFrame(void)
 			waitKey(5);
 		}
 
-		// --- PUT YOUR CODE HERE ---
-		// Apply transforms here 
-		Mat rotationAroundTheSun = Mat::eye(4, 4, CV_32FC1);
-		earth.transform(rotationAroundTheSun * earthTransform);
-		moon.transform(rotationAroundTheSun * moonTransform);
-
-		// --- PUT YOUR CODE HERE ---
+		//rotation around the earth
+		// earth.transform(earthTransform);
+		// moon.transform(moonTransform);
+		
+		//save old pivot then rotate around the sun
+		// Vec3f temp = earth.getPivot();
+		// earth.setPivot(Vec3f::all(0));
+		// moon.setPivot(Vec3f::all(0));
+		// earth.transform(rotationAroundTheSun);
+		// moon.transform(rotationAroundTheSun);
+		
+		//calculate new center for earth and update pivots
+		// temp = transform.point(temp, rotationAroundTheSun);
+		// earth.setPivot(temp);
+		// moon.setPivot(temp);
+		
 		// Apply camera animation here
+		cam3->setTarget(cam3->getTarget() + targetStep);
+		if (frame <= nFrames/2) {
+			cam3->setPosition(cam3->getPosition() + originStepA);
+			cam3->setAngle(cam3->getAngle() + angleStepA);
+		} else {
+			cam3->setPosition(cam3->getPosition() + originStepB);
+			cam3->setAngle(cam3->getAngle() + angleStepB);
+		}
 	}
 	return frame_img;
 }

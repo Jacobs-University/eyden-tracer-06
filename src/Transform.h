@@ -100,7 +100,21 @@ public:
 		return CTransform(t * m_t);
 	}
 
-	// --- PUT YOUR CODE HERE ---
+	CTransform shear(int axis, const Vec3f& H) const {
+		
+		//catch invalid axis
+		if (axis < 0 || axis > 3) {
+			return CTransform(m_t);
+		}
+		
+		Mat t = Mat::eye(4, 4, CV_32FC1);
+		for (int i = 0; i < 3; i++) {
+			if (i != axis) {
+				t.at<float>(i, axis) = H.val[i];
+			}
+		}
+		return CTransform(t * m_t);
+	}
 
 	/**
 	* @brief Adds rotation around axis \b v by angle \b theta
