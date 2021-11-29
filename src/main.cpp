@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 #include "CameraPerspective.h"
+#include "CameraTarget.h"
 
 #include "PrimSphere.h"
 #include "PrimPlane.h"
@@ -45,13 +46,15 @@ Mat RenderFrame(void)
 	// Cameras
 	auto cam1 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000, 500, -192), Vec3f(0, -1, 0), Vec3f(0, 0, -1), 90.0f);			// upside-down view
 	auto cam2 = std::make_shared<CCameraPerspective>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(0, 0, -1), Vec3f(0, 1, 0), 3.5f);			// side view
+	auto cam3 = std::make_shared<CCameraTarget>(resolution, Vec3f(150000 - 11, 3, 250), Vec3f(150000, 0, -384), Vec3f(0, 1, 0), 3.5f);			// side view
 	scene.add(cam1);				
 	scene.add(cam2);
+	scene.add(cam3);
 
 #ifdef WIN32
 	const std::string dataPath = "../data/";
 #else
-	const std::string dataPath = "../../../data/";
+	const std::string dataPath = "../../data/";
 #endif
 
 	// Textures
@@ -91,16 +94,24 @@ Mat RenderFrame(void)
 	const size_t nFrames = 1;										// 180 frames - 6 seconds of video
 	VideoWriter videoWriter;
 	if (nFrames) {
-		auto codec = VideoWriter::fourcc('M', 'J', 'P', 'G');		// Native windows codec
-		//auto codec = VideoWriter::fourcc('H', '2', '6', '4');		// Try it on MacOS
+		// auto codec = VideoWriter::fourcc('M', 'J', 'P', 'G');		// Native windows codec
+		auto codec = VideoWriter::fourcc('H', '2', '6', '4');		// Try it on MacOS
 		videoWriter.open("video.avi", codec, 30, resolution);
 		if (!videoWriter.isOpened()) printf("ERROR: Can't open vide file for writing\n");
 	}
 
 	// --- PUT YOUR CODE HERE ---
 	// derive the transormation matrices here
+	moon.setPivot(earth.getPivot());
 	Mat earthTransform = Mat::eye(4, 4, CV_32FC1);
 	Mat moonTransform = Mat::eye(4, 4, CV_32FC1);
+	// Mat rotationAroundTheSun = transform.rotate(Vec3f(0.0f, 1.0f, 0.0f), (360.0f / (6*frameRate)) / 365.0f).get();
+
+	Vec3f targetStep = (Vec3f(149989, 0, -2603) - Vec3f(150000, 0, -384)) * (1.0f/nFrames);
+	Vec3f originStepA = (Vec3f(149500, -8, -1300) - Vec3f(149989, 3, 250)) * (1.0f/(nFrames/2));
+	Vec3f originStepB = (Vec3f(149400, 3, -2800) - Vec3f(149500, -8, -1300)) * (1.0f/(nFrames/2));
+	float angleStepA = (60 - 3.5) * (1.0f/(nFrames/2));
+	float angleStepB = (30 - 60) * (1.0f/(nFrames/2));
 
 	for (size_t frame = 0; frame < nFrames; frame++) {
 		// Build BSPTree
@@ -133,6 +144,14 @@ Mat RenderFrame(void)
 
 		// --- PUT YOUR CODE HERE ---
 		// Apply camera animation here
+		cam3->setTarget(cam3->getTarget() + targetStep);
+		if (frame <= nFrames/2) {
+			cam3->setPosition(cam3->getPosition() + originStepA);
+			cam3->setAngle(cam3->getAngle() + angleStepA);
+		} else {
+			cam3->setPosition(cam3->getPosition() + originStepB);
+			cam3->setAngle(cam3->getAngle() + angleStepB);
+		}
 	}
 	return frame_img;
 }
